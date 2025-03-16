@@ -29,6 +29,11 @@ It leverages advanced post-processing techniques to achieve **real-time visuals*
   - **DDGI (Dynamic Diffuse Global Illumination)**  
   - **SSAO (Screen Space Ambient Occlusion)**  
   - **HBAO (Horizon-Based Ambient Occlusion)**  
+- **Realistic Lighting & Shadows**:  
+  - **Soft Shadows & Accumulative Shadows** (Powered by React Drei)  
+- **Interactive Controls**:  
+  - **3D Cursor** to move the model  
+  - **First-Person Camera Mode**: Move around the scene using **WASD keys**, like in a video game  
 - **Drag & Drop Model Loading**  
 - **Real-time PBR Rendering**  
 
