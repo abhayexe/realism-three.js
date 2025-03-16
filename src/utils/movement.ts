@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 
 export const MOVEMENT = {
-  SPEED: 2,
+  SPEED: 1,
   SPRINT_MULTIPLIER: 2,
   JUMP_FORCE: 8,
   GRAVITY: -20,

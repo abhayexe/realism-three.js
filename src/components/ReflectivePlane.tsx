@@ -10,13 +10,13 @@ function ReflectivePlane() {
     if (plane) {
       // Create the Reflector
       const reflector = new Reflector(new THREE.PlaneGeometry(50, 50), {
-        color: 0x777777,
+        color: 0xffffff,
         textureWidth: window.innerWidth * 2,
         textureHeight: window.innerHeight * 2,
       });
 
       reflector.rotateX(-Math.PI / 2); // Align the reflector
-      reflector.position.set(0, -1.4, 0);
+      reflector.position.set(0, 0, 0);
 
       // Add the reflector to the plane
       plane.add(reflector);

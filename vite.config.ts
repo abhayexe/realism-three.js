@@ -1,11 +1,19 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  base: "/3d-model-viewer",
+  base: "./",  
   plugins: [react()],
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  publicDir: 'public',
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@public': path.resolve(__dirname, './public')
+    }
+  },
+  assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.hdr']
 });

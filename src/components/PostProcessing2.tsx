@@ -7,7 +7,7 @@ export function PostProcessing2() {
 
   return (
     <EffectComposer enableNormalPass>
-      <SSR
+      {/* <SSR
         // Core settings
         temporalResolve={true}
         STRETCH_MISSED_RAYS={true}
@@ -49,26 +49,26 @@ export function PostProcessing2() {
         maxDepth={1}
         thickness={10}
         ior={1.45}
-      />
+      /> */}
       <N8AO
-        intensity={5.5}
-        aoRadius={2}
+        intensity={1.5}
+        aoRadius={0.5}
         distanceFalloff={1}
         screenSpaceRadius={false}
         halfRes={false}
         blendFunction={BlendFunction.MULTIPLY}
-        color="black"
+        color="#012c06"//black
       />
-      <BrightnessContrast brightness={0} contrast={0.05} />
+      <BrightnessContrast brightness={0} contrast={0.0} />
       <Bloom
-        luminanceThreshold={0.9}
+        luminanceThreshold={0.9}//0.9
         mipmapBlur
         luminanceSmoothing={0}
-        intensity={0.4}
+        intensity={0.2}//0.4
       />
       <HueSaturation
-        saturation={0.2}
-        hue={0.0}
+        saturation={0.0}
+        hue={0.}
       />
     </EffectComposer>
   );
