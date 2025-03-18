@@ -1,8 +1,16 @@
-import { useRef } from 'react';
-import { DirectionalLight, DirectionalLightHelper, CameraHelper } from 'three';
-import { useHelper } from '@react-three/drei';
+import { useRef } from "react";
+import { DirectionalLight, DirectionalLightHelper, CameraHelper } from "three";
+import { useHelper } from "@react-three/drei";
 
-export function Lighting() {
+interface LightingProps {
+  color?: string;
+  intensity?: number;
+}
+
+export function Lighting({
+  color = "#ffffff",
+  intensity = 5.5,
+}: LightingProps) {
   const lightRef = useRef<DirectionalLight>(null);
 
   // Uncomment to debug shadow camera
@@ -13,10 +21,10 @@ export function Lighting() {
     <>
       <directionalLight
         ref={lightRef}
-        color="#ffffff"//ffd7c4 <dawn, eaccc6 <sunset
-        position={[18, 19, 5]}//5,15,5
+        color={color}
+        position={[18, 19, 5]} //5,15,5
         // position={[15, 15, 15]}
-        intensity={5.5}
+        intensity={intensity}
         castShadow
         shadow-bias={-0.001}
         shadow-mapSize={[4096, 4096]}

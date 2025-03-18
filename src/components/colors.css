@@ -3,10 +3,11 @@ body{
     color: #012c06;
     color: #081c76;
     color: #121212;
+    color: #101010;
     /* rose gold */
 }
 
-<Environment
+/* <Environment
   background={false} // can be true, false or "only" (which only sets the background) (default: false)
   backgroundBlurriness={0} // optional blur factor between 0 and 1 (default: 0, only works with three 0.146 and up)
   backgroundIntensity={1} // optional intensity factor (default: 1, only works with three 0.163 and up)
@@ -15,4 +16,4 @@ body{
   environmentRotation={[0, Math.PI / 2, 0]} // optional rotation (default: 0, only works with three 0.163 and up)
   files={city.hdr}
   path="/"
-/>
+/> */

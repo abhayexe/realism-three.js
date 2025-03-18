@@ -17,12 +17,31 @@ const HDR_OPTIONS = [
   "dawn.hdr",
 ];
 
+// Define available panorama images
+const PANORAMA_OPTIONS = ["09.jpg", "10.jpg"];
+
 // Define shadow color presets
 const SHADOW_COLOR_PRESETS = [
   { name: "Black", value: "#000000" },
   { name: "Blue", value: "#081c76" },
   { name: "Forest Green", value: "#012c06" },
   { name: "Dawn", value: "#7a2f0f" },
+];
+
+// Define light color presets
+const LIGHT_COLOR_PRESETS = [
+  { name: "White", value: "#ffffff" },
+  { name: "Dawn", value: "#ffd7c4" },
+  { name: "Sunset", value: "#eaccc6" },
+];
+
+// Define background color presets
+const BACKGROUND_COLOR_PRESETS = [
+  { name: "White", value: "#ffffff" },
+  { name: "Black", value: "#000000" },
+  { name: "Gray", value: "#202020" },
+  { name: "Warm", value: "#faf0e6" },
+  { name: "Cool", value: "#e6f0fa" },
 ];
 
 interface SettingsPanelProps {
@@ -35,10 +54,20 @@ interface SettingsPanelProps {
     enablePostProcessing: boolean;
     enableSSR: boolean;
     enableRings: boolean;
+    enableBloom: boolean;
     useFirstPersonCamera: boolean;
     modelScale: number;
     enableCursor: boolean;
     shadowColor: string;
+    enablePanorama: boolean;
+    selectedPanorama: string;
+    panoramaType: string;
+    environmentType: string;
+    enableStandardFloor: boolean;
+    enableReflectiveFloor: boolean;
+    backgroundColor: string;
+    lightColor: string;
+    lightIntensity: number;
   };
   onSettingsChange: (settings: any) => void;
 }
@@ -64,6 +93,34 @@ export function SettingsPanel({
     });
   };
 
+  const handleEnvironmentTypeChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    onSettingsChange({
+      ...settings,
+      environmentType: e.target.value,
+      // Disable ground projection for studio environment as it's not compatible
+      enableGroundProjection:
+        e.target.value === "studio" ? false : settings.enableGroundProjection,
+    });
+  };
+
+  const handlePanoramaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onSettingsChange({
+      ...settings,
+      selectedPanorama: e.target.value,
+    });
+  };
+
+  const handlePanoramaTypeChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    onSettingsChange({
+      ...settings,
+      panoramaType: e.target.value,
+    });
+  };
+
   const handleScaleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
     if (!isNaN(value)) {
@@ -81,10 +138,51 @@ export function SettingsPanel({
     });
   };
 
-  const handleShadowColorPreset = (color: string) => {
+  const handleBackgroundColorChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     onSettingsChange({
       ...settings,
-      shadowColor: color,
+      backgroundColor: e.target.value,
+    });
+  };
+
+  const handleLightColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onSettingsChange({
+      ...settings,
+      lightColor: e.target.value,
+    });
+  };
+
+  const handleLightIntensityChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) {
+      onSettingsChange({
+        ...settings,
+        lightIntensity: value,
+      });
+    }
+  };
+
+  const handleColorPreset = (colorType: string, color: string) => {
+    onSettingsChange({
+      ...settings,
+      [colorType]: color,
+    });
+  };
+
+  // Toggle panorama and disable ground projection when enabling panorama
+  const togglePanorama = () => {
+    const newPanoramaState = !settings.enablePanorama;
+    onSettingsChange({
+      ...settings,
+      enablePanorama: newPanoramaState,
+      // If enabling panorama, disable ground projection as it's not compatible
+      enableGroundProjection: newPanoramaState
+        ? false
+        : settings.enableGroundProjection,
     });
   };
 
@@ -188,6 +286,122 @@ export function SettingsPanel({
                   ></label>
                 </div>
               </div>
+
+              <div className="mt-4 border-t border-gray-700 pt-3">
+                <h5 className="text-sm font-medium text-blue-300 mb-2">
+                  Background Color
+                </h5>
+
+                <div className="flex flex-col space-y-1 mb-3">
+                  <label htmlFor="background-color" className="text-sm">
+                    Color
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      id="background-color"
+                      type="color"
+                      value={settings.backgroundColor}
+                      onChange={handleBackgroundColorChange}
+                      className="w-8 h-8 rounded cursor-pointer"
+                      title="Select background color"
+                    />
+                    <input
+                      type="text"
+                      value={settings.backgroundColor}
+                      onChange={handleBackgroundColorChange}
+                      className="w-24 bg-gray-700 text-white text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      title="Enter background color hex code"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col space-y-1 mb-3">
+                  <label className="text-sm">Color Presets</label>
+                  <div className="flex flex-wrap gap-2">
+                    {BACKGROUND_COLOR_PRESETS.map((preset) => (
+                      <button
+                        key={preset.value}
+                        onClick={() =>
+                          handleColorPreset("backgroundColor", preset.value)
+                        }
+                        className="flex flex-col items-center"
+                        title={`Use ${preset.name} background color`}
+                      >
+                        <div
+                          className="w-6 h-6 rounded-full border border-gray-600 cursor-pointer hover:scale-110 transition-transform"
+                          style={{ backgroundColor: preset.value }}
+                        />
+                        <span className="text-xs mt-1">{preset.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 border-t border-gray-700 pt-3">
+                <h5 className="text-sm font-medium text-blue-300 mb-2">
+                  Floor Settings
+                </h5>
+
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="standard-floor-toggle" className="text-sm">
+                    Standard Floor
+                  </label>
+                  <div className="relative inline-block w-10 mr-2 align-middle select-none">
+                    <input
+                      id="standard-floor-toggle"
+                      type="checkbox"
+                      checked={settings.enableStandardFloor}
+                      onChange={() => toggleSetting("enableStandardFloor")}
+                      className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                      title="Toggle standard floor"
+                    />
+                    <label
+                      htmlFor="standard-floor-toggle"
+                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${
+                        settings.enableStandardFloor
+                          ? "bg-blue-500"
+                          : "bg-gray-600"
+                      }`}
+                    ></label>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <label htmlFor="reflective-floor-toggle" className="text-sm">
+                    Reflective Floor
+                  </label>
+                  <div className="relative inline-block w-10 mr-2 align-middle select-none">
+                    <input
+                      id="reflective-floor-toggle"
+                      type="checkbox"
+                      checked={settings.enableReflectiveFloor}
+                      onChange={() => toggleSetting("enableReflectiveFloor")}
+                      className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                      title="Toggle reflective floor"
+                    />
+                    <label
+                      htmlFor="reflective-floor-toggle"
+                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${
+                        settings.enableReflectiveFloor
+                          ? "bg-blue-500"
+                          : "bg-gray-600"
+                      }`}
+                    ></label>
+                  </div>
+                </div>
+
+                <div className="mt-2 p-2 bg-gray-800 rounded-md text-xs text-gray-300">
+                  <p className="mb-1">
+                    <strong>Floor Options:</strong>
+                  </p>
+                  <p>• Standard Floor: Simple non-reflective surface</p>
+                  <p>
+                    • Reflective Floor: Mirror-like surface with reflections
+                  </p>
+                  <p>• You can enable both or neither as needed</p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -223,22 +437,22 @@ export function SettingsPanel({
               {settings.enableEnvironment && (
                 <div className="space-y-3 pl-2 border-l-2 border-gray-700 mt-2">
                   <div className="flex items-center justify-between">
-                    <label htmlFor="ground-toggle" className="text-sm">
-                      Ground Projection
+                    <label htmlFor="panorama-toggle" className="text-sm">
+                      Use 360° Panorama
                     </label>
                     <div className="relative inline-block w-10 mr-2 align-middle select-none">
                       <input
-                        id="ground-toggle"
+                        id="panorama-toggle"
                         type="checkbox"
-                        checked={settings.enableGroundProjection}
-                        onChange={() => toggleSetting("enableGroundProjection")}
+                        checked={settings.enablePanorama}
+                        onChange={togglePanorama}
                         className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
-                        title="Toggle ground projection"
+                        title="Toggle panorama"
                       />
                       <label
-                        htmlFor="ground-toggle"
+                        htmlFor="panorama-toggle"
                         className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${
-                          settings.enableGroundProjection
+                          settings.enablePanorama
                             ? "bg-blue-500"
                             : "bg-gray-600"
                         }`}
@@ -246,24 +460,128 @@ export function SettingsPanel({
                     </div>
                   </div>
 
-                  <div className="flex flex-col space-y-1">
-                    <label htmlFor="hdr-select" className="text-sm">
-                      HDR Environment
-                    </label>
-                    <select
-                      id="hdr-select"
-                      value={settings.selectedHDR}
-                      onChange={handleHDRChange}
-                      className="bg-gray-700 text-white text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      title="Select HDR environment"
-                    >
-                      {HDR_OPTIONS.map((hdr) => (
-                        <option key={hdr} value={hdr}>
-                          {hdr.replace(".hdr", "")}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {settings.enablePanorama ? (
+                    <div className="flex flex-col space-y-3">
+                      <div className="flex flex-col space-y-1">
+                        <label htmlFor="panorama-select" className="text-sm">
+                          Panorama Image
+                        </label>
+                        <select
+                          id="panorama-select"
+                          value={settings.selectedPanorama}
+                          onChange={handlePanoramaChange}
+                          className="bg-gray-700 text-white text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          title="Select panorama image"
+                        >
+                          {PANORAMA_OPTIONS.map((img) => (
+                            <option key={img} value={img}>
+                              {img}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col space-y-1">
+                        <label
+                          htmlFor="panorama-type-select"
+                          className="text-sm"
+                        >
+                          Panorama Type
+                        </label>
+                        <select
+                          id="panorama-type-select"
+                          value={settings.panoramaType}
+                          onChange={handlePanoramaTypeChange}
+                          className="bg-gray-700 text-white text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          title="Select panorama implementation"
+                        >
+                          <option value="environment">Environment Map</option>
+                          <option value="sphere">Sphere Geometry</option>
+                        </select>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex flex-col space-y-1 mb-3">
+                        <label
+                          htmlFor="environment-type-select"
+                          className="text-sm"
+                        >
+                          Environment Type
+                        </label>
+                        <select
+                          id="environment-type-select"
+                          value={settings.environmentType}
+                          onChange={handleEnvironmentTypeChange}
+                          className="bg-gray-700 text-white text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          title="Select environment type"
+                        >
+                          <option value="hdr">HDR Environment</option>
+                          <option value="studio">Studio Environment</option>
+                        </select>
+                      </div>
+
+                      {settings.environmentType === "hdr" && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <label htmlFor="ground-toggle" className="text-sm">
+                              Ground Projection
+                            </label>
+                            <div className="relative inline-block w-10 mr-2 align-middle select-none">
+                              <input
+                                id="ground-toggle"
+                                type="checkbox"
+                                checked={settings.enableGroundProjection}
+                                onChange={() =>
+                                  toggleSetting("enableGroundProjection")
+                                }
+                                className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                                title="Toggle ground projection"
+                              />
+                              <label
+                                htmlFor="ground-toggle"
+                                className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${
+                                  settings.enableGroundProjection
+                                    ? "bg-blue-500"
+                                    : "bg-gray-600"
+                                }`}
+                              ></label>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col space-y-1">
+                            <label htmlFor="hdr-select" className="text-sm">
+                              HDR Environment
+                            </label>
+                            <select
+                              id="hdr-select"
+                              value={settings.selectedHDR}
+                              onChange={handleHDRChange}
+                              className="bg-gray-700 text-white text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              title="Select HDR environment"
+                            >
+                              {HDR_OPTIONS.map((hdr) => (
+                                <option key={hdr} value={hdr}>
+                                  {hdr.replace(".hdr", "")}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </>
+                      )}
+
+                      {settings.environmentType === "studio" && (
+                        <div className="mt-2 p-2 bg-gray-800 rounded-md text-xs text-gray-300">
+                          <p className="mb-1">
+                            <strong>Studio Environment:</strong>
+                          </p>
+                          <p>• Custom lighting setup with lightformers</p>
+                          <p>• Includes a red ring light for accent</p>
+                          <p>• Great for product visualization</p>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -297,6 +615,84 @@ export function SettingsPanel({
                   ></label>
                 </div>
               </div>
+
+              {settings.enableLighting && (
+                <div className="space-y-3 pl-2 border-l-2 border-gray-700 mt-2">
+                  <div className="flex flex-col space-y-1">
+                    <label htmlFor="light-color" className="text-sm">
+                      Light Color
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        id="light-color"
+                        type="color"
+                        value={settings.lightColor}
+                        onChange={handleLightColorChange}
+                        className="w-8 h-8 rounded cursor-pointer"
+                        title="Select light color"
+                      />
+                      <input
+                        type="text"
+                        value={settings.lightColor}
+                        onChange={handleLightColorChange}
+                        className="w-24 bg-gray-700 text-white text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        title="Enter light color hex code"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col space-y-1">
+                    <label className="text-sm">Light Presets</label>
+                    <div className="flex flex-wrap gap-2">
+                      {LIGHT_COLOR_PRESETS.map((preset) => (
+                        <button
+                          key={preset.value}
+                          onClick={() =>
+                            handleColorPreset("lightColor", preset.value)
+                          }
+                          className="flex flex-col items-center"
+                          title={`Use ${preset.name} light color`}
+                        >
+                          <div
+                            className="w-6 h-6 rounded-full border border-gray-600 cursor-pointer hover:scale-110 transition-transform"
+                            style={{ backgroundColor: preset.value }}
+                          />
+                          <span className="text-xs mt-1">{preset.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col space-y-1 mt-3">
+                    <label htmlFor="light-intensity" className="text-sm">
+                      Light Intensity
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        id="light-intensity"
+                        type="range"
+                        min="0"
+                        max="10"
+                        step="0.1"
+                        value={settings.lightIntensity}
+                        onChange={handleLightIntensityChange}
+                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                        title="Adjust light intensity"
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="10"
+                        step="0.1"
+                        value={settings.lightIntensity}
+                        onChange={handleLightIntensityChange}
+                        className="w-16 bg-gray-700 text-white text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        title="Enter light intensity"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <label htmlFor="shadows-toggle" className="text-sm">
@@ -353,7 +749,9 @@ export function SettingsPanel({
                       {SHADOW_COLOR_PRESETS.map((preset) => (
                         <button
                           key={preset.value}
-                          onClick={() => handleShadowColorPreset(preset.value)}
+                          onClick={() =>
+                            handleColorPreset("shadowColor", preset.value)
+                          }
                           className="flex flex-col items-center"
                           title={`Use ${preset.name} shadow color`}
                         >
@@ -380,7 +778,7 @@ export function SettingsPanel({
 
               <div className="flex items-center justify-between">
                 <label htmlFor="postprocessing-toggle" className="text-sm">
-                  Post Processing
+                  SSGI post processing
                 </label>
                 <div className="relative inline-block w-10 mr-2 align-middle select-none">
                   <input
@@ -426,7 +824,7 @@ export function SettingsPanel({
 
               <div className="flex items-center justify-between">
                 <label htmlFor="rings-toggle" className="text-sm">
-                  Animated Rings
+                  Rings
                 </label>
                 <div className="relative inline-block w-10 mr-2 align-middle select-none">
                   <input
@@ -443,6 +841,38 @@ export function SettingsPanel({
                       settings.enableRings ? "bg-blue-500" : "bg-gray-600"
                     }`}
                   ></label>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-start">
+                <div className="flex items-center justify-between w-full">
+                  <label htmlFor="bloom-toggle" className="text-sm">
+                    SSAO + Bloom
+                  </label>
+                  <div className="relative inline-block w-10 mr-2 align-middle select-none">
+                    <input
+                      id="bloom-toggle"
+                      type="checkbox"
+                      checked={settings.enableBloom}
+                      onChange={() => toggleSetting("enableBloom")}
+                      className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                      title="Toggle rings effect"
+                    />
+                    <label
+                      htmlFor="bloom-toggle"
+                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${
+                        settings.enableBloom ? "bg-blue-500" : "bg-gray-600"
+                      }`}
+                    ></label>
+                  </div>
+                </div>
+
+                {/* Camera Controls Section */}
+                <div className="mt-4 p-2 bg-gray-800 rounded-md text-xs text-gray-300 w-full">
+                  <p className="mb-1">
+                    <strong>Tip:</strong>
+                  </p>
+                  <p>• Make sure to enable only one at a time</p>
                 </div>
               </div>
             </div>

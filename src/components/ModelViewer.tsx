@@ -21,6 +21,8 @@ import {
   Clouds,
   Lightformer,
   Cloud,
+  useTexture,
+  MeshReflectorMaterial,
 } from "@react-three/drei";
 import ReflectivePlane from "./ReflectivePlane";
 import { Rings } from "./Rings";
@@ -33,7 +35,12 @@ import { Effects } from "./Effects.tsx";
 import { SSR } from "./SSR";
 import * as THREE from "three";
 import { SettingsPanel } from "./SettingsPanel";
+
+// import NaturalFirstPersonControls from './NaturalFirstPersonControls';
 import { FirstPersonCamera } from "./FirstPersonCamera";
+import { PanoramaEnvironment } from "./PanoramaEnvironment";
+import { PanoramaSphere } from "./PanoramaSphere";
+import { SSRHelper } from "./SSRHelper";
 
 export default function ModelViewer() {
   const [modelUrl, setModelUrl] = useState<string | null>(null);
@@ -50,10 +57,20 @@ export default function ModelViewer() {
     enablePostProcessing: false,
     enableSSR: false,
     enableRings: false,
+    enableBloom: false,
     useFirstPersonCamera: false,
     modelScale: 0.8,
     enableCursor: false,
     shadowColor: "#000000",
+    enablePanorama: false,
+    selectedPanorama: "09.jpg",
+    panoramaType: "environment", // "environment" or "sphere"
+    environmentType: "hdr", // "hdr" or "studio"
+    enableStandardFloor: false,
+    enableReflectiveFloor: false,
+    backgroundColor: "#ffffff",
+    lightColor: "#ffffff",
+    lightIntensity: 5.5,
   });
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -92,11 +109,7 @@ export default function ModelViewer() {
         camera={{ position: [0, 2, 5], fov: 50 }}
         gl={{ antialias: true }}
       >
-        <color
-          attach="background"
-          args={["#121212"]}
-          // args={["#eaccc6"]}
-        />
+        <color attach="background" args={[settings.backgroundColor]} />
 
         {modelUrl && (
           <group ref={modelRef}>
@@ -136,7 +149,12 @@ export default function ModelViewer() {
           <Blob position={[-2, 0.2, 4]} />
           <Blob position={[2, 1, -2]} /> */}
 
-        {settings.enableLighting && <Lighting />}
+        {settings.enableLighting && (
+          <Lighting
+            color={settings.lightColor}
+            intensity={settings.lightIntensity}
+          />
+        )}
         <SoftShadows
           size={40} // Size of the shadow map (default: 10)
           focus={0.2} // Focus of the shadow (default: 0)
@@ -148,42 +166,143 @@ export default function ModelViewer() {
         {/* <color attach="background" args={['#fac0a4']} /> */}
         {/* <Fog color="white" near={5} far={300} />  */}
 
-        {settings.enableEnvironment && (
-          <Environment
-            files={`/${settings.selectedHDR}`} // Notice the leading slash - this points to the public folder
-            // path=""
-            // preset="sunset"
-            background
-            // resolution={1080}
-            // backgroundRotation ={new THREE.Euler(Math.PI / 4, Math.PI / 6, 0)}
-            backgroundIntensity={0.4}
-            ground={
-              settings.enableGroundProjection
-                ? { height: 10, radius: 40, scale: 30 }
-                : undefined
-            }
-            backgroundBlurriness={0.0}
-            environmentIntensity={0.1}
-          />
+        {settings.enableEnvironment && !settings.enablePanorama && (
+          <>
+            {settings.environmentType === "hdr" ? (
+              <Environment
+                files={`/${settings.selectedHDR}`}
+                background
+                backgroundIntensity={0.4}
+                ground={
+                  settings.enableGroundProjection
+                    ? { height: 10, radius: 40, scale: 30 }
+                    : undefined
+                }
+                backgroundBlurriness={0.0}
+                environmentIntensity={0.1}
+              />
+            ) : (
+              <Environment resolution={1024}>
+                <Lightformer
+                  intensity={2}
+                  rotation-x={Math.PI / 2}
+                  position={[0, 4, -9]}
+                  scale={[10, 1, 1]}
+                />
+                <Lightformer
+                  intensity={2}
+                  rotation-x={Math.PI / 2}
+                  position={[0, 4, -6]}
+                  scale={[10, 1, 1]}
+                />
+                <Lightformer
+                  intensity={2}
+                  rotation-x={Math.PI / 2}
+                  position={[0, 4, -3]}
+                  scale={[10, 1, 1]}
+                />
+                <Lightformer
+                  intensity={2}
+                  rotation-x={Math.PI / 2}
+                  position={[0, 4, 0]}
+                  scale={[10, 1, 1]}
+                />
+                <Lightformer
+                  intensity={2}
+                  rotation-x={Math.PI / 2}
+                  position={[0, 4, 3]}
+                  scale={[10, 1, 1]}
+                />
+                <Lightformer
+                  intensity={2}
+                  rotation-x={Math.PI / 2}
+                  position={[0, 4, 6]}
+                  scale={[10, 1, 1]}
+                />
+                <Lightformer
+                  intensity={2}
+                  rotation-x={Math.PI / 2}
+                  position={[0, 4, 9]}
+                  scale={[10, 1, 1]}
+                />
+                <Lightformer
+                  intensity={2}
+                  rotation-y={Math.PI / 2}
+                  position={[-50, 2, 0]}
+                  scale={[100, 2, 1]}
+                />
+                <Lightformer
+                  intensity={2}
+                  rotation-y={-Math.PI / 2}
+                  position={[50, 2, 0]}
+                  scale={[100, 2, 1]}
+                />
+                <Lightformer
+                  form="ring"
+                  color="red"
+                  intensity={10}
+                  scale={2}
+                  position={[10, 5, 10]}
+                  onUpdate={(self) => self.lookAt(0, 0, 0)}
+                />
+              </Environment>
+            )}
+          </>
         )}
 
-        <mesh
-          rotation={[-Math.PI / 2, 0, 0]}
-          // position={[0, -0.05, 0]}
-          position={[0, -0.2, 0]}
-          receiveShadow
-        >
-          {/* <planeGeometry args={[50, 50]} /> */}
-          <meshStandardMaterial
-            color="white"
-            metalness={0}
-            // emissive={new THREE.Color(255, 0, 0)}
-            emissiveIntensity={0.0}
-            // side={THREE.BackSide}
-            roughness={1}
-          />
-        </mesh>
-        {/* <ReflectivePlane /> */}
+        {settings.enablePanorama && (
+          <Suspense fallback={null}>
+            {settings.panoramaType === "environment" ? (
+              <PanoramaEnvironment
+                imagePath={`/${settings.selectedPanorama}`}
+              />
+            ) : (
+              <PanoramaSphere imagePath={`/${settings.selectedPanorama}`} />
+            )}
+          </Suspense>
+        )}
+
+        {settings.enableSSR && (
+          <>
+            <SSRHelper />
+            <SSR />
+          </>
+        )}
+
+        {settings.enableStandardFloor && (
+          <mesh
+            rotation={[-Math.PI / 2, 0, 0]}
+            position={[0, -0.2, 0]}
+            receiveShadow
+          >
+            <planeGeometry args={[50, 50]} />
+            <meshStandardMaterial
+              color="white"
+              metalness={0}
+              emissiveIntensity={0.0}
+              roughness={1}
+            />
+          </mesh>
+        )}
+
+        {settings.enableReflectiveFloor && (
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[100, 100]} />
+            <MeshReflectorMaterial
+              blur={[300, 100]}
+              resolution={1024}
+              mixBlur={1}
+              mixStrength={50}
+              roughness={1}
+              depthScale={1.2}
+              minDepthThreshold={0.4}
+              maxDepthThreshold={1.4}
+              color="#202020"
+              metalness={0.0}
+              mirror={0.5}
+            />
+          </mesh>
+        )}
 
         {!settings.useFirstPersonCamera ? (
           <OrbitControls
@@ -198,21 +317,8 @@ export default function ModelViewer() {
 
         {settings.enablePostProcessing && <PostProcessing />}
         {/* <Effects /> */}
-        {settings.enableSSR && <SSR />}
-        {/* <Environment resolution={1024}>
-       <Lightformer intensity={2} rotation-x={Math.PI / 2} position={[0, 4, -9]} scale={[10, 1, 1]} />
-       <Lightformer intensity={2} rotation-x={Math.PI / 2} position={[0, 4, -6]} scale={[10, 1, 1]} />
-       <Lightformer intensity={2} rotation-x={Math.PI / 2} position={[0, 4, -3]} scale={[10, 1, 1]} />
-       <Lightformer intensity={2} rotation-x={Math.PI / 2} position={[0, 4, 0]} scale={[10, 1, 1]} />
-       <Lightformer intensity={2} rotation-x={Math.PI / 2} position={[0, 4, 3]} scale={[10, 1, 1]} />
-       <Lightformer intensity={2} rotation-x={Math.PI / 2} position={[0, 4, 6]} scale={[10, 1, 1]} />
-       <Lightformer intensity={2} rotation-x={Math.PI / 2} position={[0, 4, 9]} scale={[10, 1, 1]} />
-       <Lightformer intensity={2} rotation-y={Math.PI / 2} position={[-50, 2, 0]} scale={[100, 2, 1]} />
-       <Lightformer intensity={2} rotation-y={-Math.PI / 2} position={[50, 2, 0]} scale={[100, 2, 1]} />
-       <Lightformer form="ring" color="red" intensity={10} scale={2} position={[10, 5, 10]} onUpdate={(self) => self.lookAt(0, 0, 0)} />
-     </Environment> */}
 
-        {/* <PostProcessing2/> */}
+        {settings.enableBloom && <PostProcessing2 />}
         {settings.enableRings && <Rings />}
         {/* <Boxes/> */}
         {/* <FloatingShapes /> */}

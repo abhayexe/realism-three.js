@@ -51,12 +51,12 @@ export function PostProcessing2() {
         ior={1.45}
       /> */}
       <N8AO
-        intensity={1.5}
+        intensity={5.5}
         aoRadius={0.5}
         distanceFalloff={1}
         screenSpaceRadius={false}
         halfRes={false}
-        blendFunction={BlendFunction.MULTIPLY}
+        // blendFunction={BlendFunction.MULTIPLY}
         color="#012c06"//black
       />
       <BrightnessContrast brightness={0} contrast={0.0} />
@@ -66,10 +66,10 @@ export function PostProcessing2() {
         luminanceSmoothing={0}
         intensity={0.2}//0.4
       />
-      <HueSaturation
+      {/* <HueSaturation
         saturation={0.0}
         hue={0.}
-      />
+      /> */}
     </EffectComposer>
   );
 }
