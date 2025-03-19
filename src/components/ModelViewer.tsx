@@ -1,4 +1,4 @@
-import { useRef, useState, Suspense } from "react";
+import { useRef, useState, Suspense, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Group } from "three";
 import { Model } from "./Model";
@@ -27,7 +27,6 @@ import {
 import ReflectivePlane from "./ReflectivePlane";
 import { Rings } from "./Rings";
 import { Boxes } from "./Boxes";
-import { PortalCube } from "./PortalCube";
 import { FloatingShapes } from "./FloatingShapes";
 import { WaveParticles } from "./WaveParticles";
 import Blob from "./Blob";
@@ -71,6 +70,7 @@ export default function ModelViewer() {
     backgroundColor: "#ffffff",
     lightColor: "#ffffff",
     lightIntensity: 5.5,
+    selectedPresetModel: "", // Empty means no preset model
   });
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -86,8 +86,20 @@ export default function ModelViewer() {
     if (file && file.name.endsWith(".glb")) {
       const url = URL.createObjectURL(file);
       setModelUrl(url);
+      // Reset preset model selection when manually dropping a file
+      setSettings({
+        ...settings,
+        selectedPresetModel: "",
+      });
     }
   };
+
+  // Update model URL when preset model changes
+  useEffect(() => {
+    if (settings.selectedPresetModel) {
+      setModelUrl(`/${settings.selectedPresetModel}`);
+    }
+  }, [settings.selectedPresetModel]);
 
   return (
     <div
@@ -293,7 +305,7 @@ export default function ModelViewer() {
               resolution={1024}
               mixBlur={1}
               mixStrength={50}
-              roughness={1}
+              roughness={0.3}
               depthScale={1.2}
               minDepthThreshold={0.4}
               maxDepthThreshold={1.4}

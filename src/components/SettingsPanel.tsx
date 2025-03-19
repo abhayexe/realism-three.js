@@ -4,6 +4,7 @@ import { HiCog } from "react-icons/hi";
 // Define the available HDR environments
 const HDR_OPTIONS = [
   "city.hdr",
+  // "forest.hdr",
   "garden.hdr",
   "park.hdr",
   "room.hdr",
@@ -19,6 +20,15 @@ const HDR_OPTIONS = [
 
 // Define available panorama images
 const PANORAMA_OPTIONS = ["09.jpg", "10.jpg"];
+
+// Define available preset models
+const PRESET_MODELS = [
+  { name: "None (Drag & Drop)", value: "" },
+  { name: "Car", value: "car.glb" },
+  { name: "City", value: "city.glb" },
+  { name: "Garage", value: "garage.glb" },
+  { name: "Box", value: "aobox-transformed.glb" },
+];
 
 // Define shadow color presets
 const SHADOW_COLOR_PRESETS = [
@@ -68,6 +78,7 @@ interface SettingsPanelProps {
     backgroundColor: string;
     lightColor: string;
     lightIntensity: number;
+    selectedPresetModel: string;
   };
   onSettingsChange: (settings: any) => void;
 }
@@ -118,6 +129,13 @@ export function SettingsPanel({
     onSettingsChange({
       ...settings,
       panoramaType: e.target.value,
+    });
+  };
+
+  const handlePresetModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onSettingsChange({
+      ...settings,
+      selectedPresetModel: e.target.value,
     });
   };
 
@@ -207,7 +225,7 @@ export function SettingsPanel({
 
       {/* Settings Panel */}
       {isOpen && (
-        <div className="absolute top-16 left-0 bg-gray-800 bg-opacity-30 backdrop-blur-sm text-white rounded-3xl shadow-xl p-4 w-120 max-h-[90vh] overflow-y-auto transition-all duration-300 border border-gray-500">
+        <div className="absolute top-16 left-0 bg-gray-800 bg-opacity-30 backdrop-blur-sm text-white rounded-3xl shadow-xl p-4 w-120 max-h-[90vh] overflow-y-auto transition-all duration-300 border border-gray-500 ">
           <h3 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">
             Settings
           </h3>
@@ -235,6 +253,40 @@ export function SettingsPanel({
               <h4 className="text-sm font-medium text-blue-400 border-b border-gray-700 pb-1">
                 Model Settings
               </h4>
+
+              <div className="flex flex-col space-y-3 mb-4 border-b border-gray-700 pb-4">
+                <h5 className="text-sm font-medium text-blue-300 mb-2">
+                  Select Model
+                </h5>
+
+                <div className="flex flex-col space-y-1">
+                  <label htmlFor="preset-model-select" className="text-sm">
+                    Preset Models
+                  </label>
+                  <select
+                    id="preset-model-select"
+                    value={settings.selectedPresetModel}
+                    onChange={handlePresetModelChange}
+                    className="bg-gray-700 text-white text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    title="Select a preset model"
+                  >
+                    {PRESET_MODELS.map((model) => (
+                      <option key={model.value} value={model.value}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mt-1 p-2 bg-gray-800 rounded-md text-xs text-gray-300">
+                  <p className="mb-1">
+                    <strong>Model Loading:</strong>
+                  </p>
+                  <p>• Select a preset model from the dropdown</p>
+                  <p>• Or drag & drop your own .glb file</p>
+                  <p>• Dropping a file will override preset selection</p>
+                </div>
+              </div>
 
               <div className="flex flex-col space-y-2">
                 <label htmlFor="model-scale" className="text-sm">
